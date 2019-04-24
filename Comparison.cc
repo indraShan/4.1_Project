@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
+
 #include "Comparison.h"
 
 
@@ -101,6 +102,38 @@ OrderMaker :: OrderMaker(Schema *schema) {
         }
 }
 
+void OrderMaker::testing_helper_setAttributes(int numberOfAttributes, int* attibutes, Type *types) {
+	numAtts = 0;
+
+	int n = numberOfAttributes;
+
+	for (int i = 0; i < n; i++) {
+		if (*(types + i) == Int) {
+			whichAtts[numAtts] = attibutes[i];
+			whichTypes[numAtts] = Int;
+			numAtts++;
+		}
+	}
+
+	// now add in the doubles
+	for (int i = 0; i < n; i++) {
+                if (*(types + i) == Double) {
+                        whichAtts[numAtts] = attibutes[i];
+                        whichTypes[numAtts] = Double;
+                        numAtts++;
+                }
+        }
+
+	// and finally the strings
+        for (int i = 0; i < n; i++) {
+                if (*(types + i) == String) {
+                        whichAtts[numAtts] = attibutes[i];
+                        whichTypes[numAtts] = String;
+                        numAtts++;
+                }
+        }
+
+}
 
 void OrderMaker :: Print () {
 	printf("NumAtts = %5d\n", numAtts);
@@ -116,6 +149,72 @@ void OrderMaker :: Print () {
 	}
 }
 
+// If this attribute is in the CNF instance, and it is the only
+// attribute present in its subexpression, an
+OrderMaker *CNF::constructQuerySortOrderFromFileOrder(OrderMaker *fileOrder)
+{
+	int numberOfAttributes = 0;
+	int attributes[MAX_ANDS];
+	Type types[MAX_ANDS];
+	for (int orderIndex = 0; orderIndex < fileOrder->numAtts; orderIndex++)
+	{
+		bool foundMatch = false;
+		for (int cnfIndex = 0; cnfIndex < numAnds; cnfIndex++)
+		{
+			// if we don't have a disjunction of length one, then it
+			// can't be acceptable for use with a sort ordering
+			if (orLens[cnfIndex] != 1)
+			{
+				continue;
+			}
+
+			// made it this far, so first verify that it is an equality check
+			if (orList[cnfIndex][0].op != Equals)
+			{
+				continue;
+			}
+
+			if (orList[cnfIndex][0].operand2 != Literal)
+			{
+				continue;
+			}
+
+			if (fileOrder->whichAtts[orderIndex] != orList[cnfIndex][0].whichAtt1) {
+				continue;
+			}
+			foundMatch = true;
+			// TODO:
+			// CNF instance says that it is comparing that attribute
+			// with a literal value with an equality check
+			attributes[numberOfAttributes] = fileOrder->whichAtts[orderIndex];
+			types[numberOfAttributes] = fileOrder->whichTypes[orderIndex];
+			numberOfAttributes++;
+		}
+		if (foundMatch == false) {
+			break;
+		}
+	}
+	if (numberOfAttributes == 0) return NULL;
+	OrderMaker *maker = new OrderMaker();
+	maker->testing_helper_setAttributes(numberOfAttributes, attributes, types);
+	return maker;
+}
+
+std::string OrderMaker :: toString () {
+	std::string oString;
+	oString += std::to_string(numAtts) + "\n";
+	for (int i = 0; i < numAtts; i++)
+	{
+		oString += std::to_string(whichAtts[i]) + " ";
+		if (whichTypes[i] == Int)
+			oString += "Int\n";
+		else if (whichTypes[i] == Double)
+			oString+="Double\n";
+		else
+			oString+="String\n";
+	}
+	return oString;
+}
 
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 

@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <iostream>
@@ -229,7 +230,7 @@ void File :: AddPage (Page *addMe, off_t whichPage) {
 }
 
 
-void File :: Open (int fileLen, char *fName) {
+void File :: Open (int fileLen, const char *fName) {
 
 	// figure out the flags for the system open call
         int mode;

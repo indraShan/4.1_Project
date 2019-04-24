@@ -6,6 +6,7 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
+#include <string>
 
 
 // This stores an individual comparison that is part of a CNF
@@ -61,6 +62,11 @@ public:
 
 	// print to the screen
 	void Print ();
+
+	std::string toString();
+
+	// Sole purpose of this method is to help in testing this class.
+	void testing_helper_setAttributes(int numberOfAttributes, int* attibutes, Type *types);
 };
 
 class Record;
@@ -78,7 +84,7 @@ class CNF {
 	int numAnds;
 
 public:
-
+	OrderMaker* constructQuerySortOrderFromFileOrder(OrderMaker *fileOrder);
 	// this returns an instance of the OrderMaker class that
 	// allows the CNF to be implemented using a sort-based
 	// algorithm such as a sort-merge join.  Returns a 0 if and
