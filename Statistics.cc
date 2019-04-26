@@ -5,6 +5,7 @@
 
 Relation::Relation() {
     numTuples = 0;
+    joinedRelationCount = 1;
     attributes = new unordered_map<string, int>();
 }
 
@@ -45,6 +46,8 @@ Statistics::Statistics(Statistics &copyMe)
             strcpy(cAttName, attName.c_str());
             AddAtt(cRelName, cAttName, numDistincts);
         }
+        Relation *copied = this->store->find(relName)->second;
+        copied->joinedRelationCount = relation->joinedRelationCount;
     }
 }
 
@@ -67,6 +70,7 @@ void Statistics::AddRel(char *relName, int numTuples)
         relation = this->store->find(relName)->second;
     }
     // TODO: Update or increment?
+    relation->joinedRelationCount = 1;
     relation->numTuples = numTuples;
 }
 
@@ -102,6 +106,8 @@ void Statistics::CopyRel(char *oldName, char *newName)
         strcpy(cAttName, attName.c_str());
         AddAtt(newName, cAttName, numDistincts);
     }
+    Relation *copied = this->store->find(newName)->second;
+    copied->joinedRelationCount = relation->joinedRelationCount;
 }
 	
 void Statistics::Read(char *fromWhere)
@@ -177,7 +183,6 @@ void  Statistics::Apply(struct AndList *parseTree, char *relNames[], int numToJo
 
 double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numToJoin)
 {
-    printStore();
     if (parseTree == NULL) {
         if (numToJoin > 1) return -1;
         return this->store->find(relNames[0])->second->numTuples;
